@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">FileDownloader</string>
+    <string name="main">Main Activity</string>
+    <string name="input">http://</string>
+    <string name="start_download">ダウンロード開始</string>
+    <string name="please_inputURL">URLを入力してください</string>
+    <string name="select_to_gallery">GALLERYから選択</string>
+    <string name="todo">TODO</string>
+    <string name="clear">Clear</string>
+    <string name="download_image">ダウンロードした画像</string>
+    <string name="popup_message">ストレージへの\n アクセス許可</string>
+    <string name="allow_popup">許可する</string>
+    <string name="no_allow_popup">許可しない</string>
+</resources>
