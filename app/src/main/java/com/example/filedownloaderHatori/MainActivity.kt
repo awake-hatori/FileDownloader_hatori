@@ -2,14 +2,15 @@ package com.example.filedownloaderHatori
 
 import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.view.View
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.HandlerCompat
@@ -19,6 +20,8 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         private const val REQUEST_GALLERY_TAKE = 2
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -35,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
         // ダイアログを表示
         displayDialog()
-        // URLから画像検索
+        // URLから画像をダウンロード
             binding.startDownload.setOnClickListener { v: View? ->
             val stringUrl = binding.URLInputField.getText().toString()
             downloadImage(stringUrl)
@@ -44,6 +48,7 @@ class MainActivity : AppCompatActivity() {
         binding.toGallery.setOnClickListener{v:View?->
             toGallery()
         }
+        // ドキュメントへ遷移
         binding.toDocument.setOnClickListener{v:View?->
             toDocument()
         }
@@ -53,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun downloadImage(urlSt: String) {
         // Singleの別スレッドを立ち上げる
         Executors.newSingleThreadExecutor().execute {
@@ -69,19 +75,25 @@ class MainActivity : AppCompatActivity() {
                 val bitmap = BitmapFactory.decodeStream(urlCon.inputStream)
                 // 別スレッド内での処理を管理し実行する
                 HandlerCompat.createAsync(mainLooper).post {
-                    Toast.makeText(applicationContext,"画像を取得できました",Toast.LENGTH_LONG).show()
+                    Toast.makeText(applicationContext,"画像をダウンロードしました",Toast.LENGTH_LONG).show()
                     binding.image.setImageBitmap(bitmap)
                 }
                 // 内部ストレージのディレクトリを指定するオブジェクトを取得
                 val context: Context = applicationContext
-                val file = File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "sample_image.jpeg")
+                //　パスを取得
+                val path = Environment.getExternalStorageDirectory().getPath()
+                // 現在時刻を取得
+                val sdf = SimpleDateFormat("yyyy年MM月dd日HH時mm分ss秒");
+                val currentDate : String = sdf.format(Date());
+                // ファイルを生成
+                val file = File("$path/hatori_picture", "$currentDate.jpeg")
                 // JPEG形式で保存
                 FileOutputStream(file).use { stream ->
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
                 }
             } catch (e: IOException) {
                 HandlerCompat.createAsync(mainLooper).post {
-                    Toast.makeText(applicationContext,"画像を取得できませんでした",Toast.LENGTH_LONG).show()
+                    Toast.makeText(applicationContext,"画像をダウンロード出来ませんでした",Toast.LENGTH_LONG).show()
                 }
                 e.printStackTrace()
             }
