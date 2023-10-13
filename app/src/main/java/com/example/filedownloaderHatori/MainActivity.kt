@@ -1,7 +1,6 @@
 package com.example.filedownloaderHatori
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -38,7 +37,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // ダイアログを表示
-        displayDialog()
+        val directoryPath = Environment.getExternalStorageDirectory().getPath() + "/hatori_picture"
+        val file = File(directoryPath)
+        if(!file.isDirectory) displayDialog()
         // URLから画像をダウンロード
             binding.startDownload.setOnClickListener { v: View? ->
             val stringUrl = binding.URLInputField.getText().toString()
@@ -55,6 +56,38 @@ class MainActivity : AppCompatActivity() {
         // 画像とテキストをclear
         binding.clear.setOnClickListener { v: View? ->
             clear()
+        }
+    }
+
+    private fun displayDialog(){
+        val builder = AlertDialog.Builder(this).apply{
+            setMessage("ストレージへのアクセス許可")
+            setPositiveButton("許可する") { _, _ ->
+                makeDirectory()
+            }
+            setNegativeButton("許可しない") { _, _ ->
+                android.os.Process.killProcess(android.os.Process.myPid());
+            }
+        }
+        builder.create().apply {
+            setCancelable(false)
+        }.show()
+    }
+
+    private fun makeDirectory(){
+        val downloadDir = File(Environment.getExternalStorageDirectory().getPath(),"hatori_picture")
+        try {
+            if (!downloadDir.exists()) {
+                downloadDir.mkdir()
+            }
+        } catch (error : SecurityException) {
+            // ファイルに書き込み用のパーミッションが無い場合など
+            error.printStackTrace()
+        } catch (error: IOException) {
+            // 何らかの原因で誤ってディレクトリを2回作成してしまった場合など
+            error.printStackTrace()
+        } catch (error: Exception) {
+            error.printStackTrace()
         }
     }
 
@@ -78,14 +111,10 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(applicationContext,"画像をダウンロードしました",Toast.LENGTH_LONG).show()
                     binding.image.setImageBitmap(bitmap)
                 }
-                // 内部ストレージのディレクトリを指定するオブジェクトを取得
-                val context: Context = applicationContext
-                //　パスを取得
-                val path = Environment.getExternalStorageDirectory().getPath()
-                // 現在時刻を取得
-                val sdf = SimpleDateFormat("yyyy年MM月dd日HH時mm分ss秒");
+                // データ保存のフォーマット
+                val sdf = SimpleDateFormat("yyyyMMdd_HH:mm:ss");
                 val currentDate : String = sdf.format(Date());
-                // ファイルを生成
+                val path = Environment.getExternalStorageDirectory().getPath()
                 val file = File("$path/hatori_picture", "$currentDate.jpeg")
                 // JPEG形式で保存
                 FileOutputStream(file).use { stream ->
@@ -112,10 +141,13 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_GALLERY_TAKE)
     }
 
-    // onActivityResultにイメージ設定
+    private fun clear(){
+        binding.URLInputField.setText("")
+        binding.image.setImageDrawable(null)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
         when (requestCode){
             REQUEST_GALLERY_TAKE -> {
                 if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_GALLERY_TAKE){
@@ -123,26 +155,5 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    private fun displayDialog(){
-        val builder = AlertDialog.Builder(this).apply{
-            setMessage("ストレージへのアクセス許可")
-            setPositiveButton("許可する") { _, _ ->
-                // 何もしない
-            }
-            setNegativeButton("許可しない") { _, _ ->
-                // プロセスを終了
-                android.os.Process.killProcess(android.os.Process.myPid());
-            }
-        }
-        builder.create().apply {
-            setCancelable(false)
-        }.show()
-    }
-
-    private fun clear(){
-        binding.URLInputField.setText("")
-        binding.image.setImageDrawable(null)
     }
 }
