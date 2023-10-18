@@ -1,5 +1,6 @@
 package com.example.filedownloaderHatori
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,20 +9,18 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.DocumentsContract
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.HandlerCompat
+import androidx.core.view.isInvisible
 import com.example.filedownloaderHatori.databinding.ActivityMainBinding
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
-import java.net.URI
 import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -30,7 +29,7 @@ import java.util.concurrent.Executors
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val directoryPath =
-        Environment.getExternalStorageDirectory().getPath() + "/hatori_picture"
+        Environment.getExternalStorageDirectory().path + "/hatori_picture"
 
     companion object {
         private const val REQUEST_IMAGE_TAKE = 2
@@ -41,19 +40,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // プログレスバーを非表示
+        binding.progressbar.isInvisible = true
         // ダイアログを表示
         displayDialog()
         // URLから画像をダウンロード
-        binding.startDownload.setOnClickListener { v: View? ->
-            val urlString = binding.URLInputField.getText().toString()
+        binding.startDownload.setOnClickListener {
+            val urlString = binding.URLInputField.text.toString()
             downloadImage(urlString)
         }
         // ギャラリーへ遷移
-        binding.toGallery.setOnClickListener { v: View? -> toGallery() }
+        binding.toGallery.setOnClickListener { toGallery() }
         // ドキュメントへ遷移
-        binding.toDocument.setOnClickListener { v: View? -> toDocument() }
+        binding.toDocument.setOnClickListener { toDocument() }
         // 画像とテキストをclear
-        binding.clear.setOnClickListener { v: View? -> clear() }
+        binding.clear.setOnClickListener { clear() }
     }
 
     private fun displayDialog() {
@@ -66,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                 createDirectory()
             }
             setNegativeButton("許可しない") { _, _ ->
-                android.os.Process.killProcess(android.os.Process.myPid());
+                android.os.Process.killProcess(android.os.Process.myPid())
             }
         }
         builder.create().apply {
@@ -91,8 +92,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.O)
     private fun downloadImage(urlString: String) {
+        binding.progressbar.isInvisible = false
         // Singleの別スレッドを立ち上げる
         Executors.newSingleThreadExecutor().execute {
             try {
@@ -107,12 +110,13 @@ class MainActivity : AppCompatActivity() {
                 // 別スレッド内での処理を管理し実行する
                 HandlerCompat.createAsync(mainLooper).post {
                     Toast.makeText(applicationContext, "画像をダウンロードしました", Toast.LENGTH_LONG).show()
+                    binding.progressbar.isInvisible = true
                     // 画像をImageViewに表示
                     binding.image.setImageBitmap(bitmap)
                 }
                 // データ保存のフォーマット
-                val dateFormat = SimpleDateFormat("yyyyMMdd_HH:mm:ss");
-                val currentDate: String = dateFormat.format(Date());
+                val dateFormat = SimpleDateFormat("yyyyMMdd_HH:mm:ss")
+                val currentDate: String = dateFormat.format(Date())
                 // JPEG形式で保存
                 val file = File(directoryPath, "$currentDate.jpeg")
                 FileOutputStream(file).use { stream ->
@@ -120,8 +124,8 @@ class MainActivity : AppCompatActivity() {
                 }
             } catch (e: IOException) {
                 HandlerCompat.createAsync(mainLooper).post {
-                    Toast.makeText(applicationContext, "画像をダウンロード出来ませんでした", Toast.LENGTH_LONG)
-                        .show()
+                    Toast.makeText(applicationContext, "画像をダウンロード出来ませんでした", Toast.LENGTH_LONG).show()
+                    binding.progressbar.isInvisible = true
                 }
                 e.printStackTrace()
             }
@@ -134,8 +138,10 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_IMAGE_TAKE)
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
+    @SuppressLint("IntentReset")
     private fun toDocument() {
-        var test = Uri.fromFile(File(directoryPath))
+        val test = Uri.fromFile(File(directoryPath))
         val uri = Uri.parse(test.toString())
         Log.d("Log", "$uri")
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT, uri)
@@ -143,14 +149,15 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_IMAGE_TAKE)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             REQUEST_IMAGE_TAKE -> {
-                if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_IMAGE_TAKE) {
+                if (resultCode == Activity.RESULT_OK && requestCode.equals(REQUEST_IMAGE_TAKE)) {
                     // 遷移先の画面から画像データを取得して表示
                     binding.image.setImageURI(data?.data)
-                    Toast.makeText(applicationContext, "画像を取得しました", Toast.LENGTH_SHORT)
+                    Toast.makeText(applicationContext, "画像を取得しました", Toast.LENGTH_SHORT).show()
                 }
             }
         }
