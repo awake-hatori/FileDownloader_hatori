@@ -31,7 +31,7 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {  
     private lateinit var binding: ActivityMainBinding
     private val directoryPath =
         Environment.getExternalStorageDirectory().path + "/hatori_picture"
