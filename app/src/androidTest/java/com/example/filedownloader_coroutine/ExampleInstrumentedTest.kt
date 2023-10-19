@@ -1,4 +1,4 @@
-package com.example.filedownloaderHatori
+package com.example.filedownloader_coroutine
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

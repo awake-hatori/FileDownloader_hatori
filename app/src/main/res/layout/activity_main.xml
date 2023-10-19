@@ -58,6 +58,16 @@
         app:layout_constraintBottom_toTopOf="@id/clear"
         android:contentDescription="@string/todo" />
 
+    <ProgressBar android:id="@+id/progressbar"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_margin="30dp"
+        style="@android:style/Widget.ProgressBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/URL_input_field"
+        app:layout_constraintBottom_toTopOf="@id/clear"/>
+
     <Button
         android:id="@+id/clear"
         android:text="@string/clear"

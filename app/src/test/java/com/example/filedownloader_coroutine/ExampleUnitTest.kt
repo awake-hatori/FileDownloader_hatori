@@ -1,4 +1,4 @@
-package com.example.filedownloaderHatori
+package com.example.filedownloader_coroutine
 
 import org.junit.Test
 
