@@ -1,5 +1,4 @@
 package com.example.filedownloader_coroutine
-
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
@@ -35,7 +34,6 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 
-
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val directoryPath =
@@ -56,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         displayDialog()
         // URLから画像をダウンロード
         binding.startDownload.setOnClickListener {
-            closeKeyboard(context = this,binding.startDownload)
+            closeKeyboard(context = this, binding.startDownload)
             val urlString = binding.URLInputField.text.toString()
             downloadImage(urlString)
         }
@@ -68,9 +66,13 @@ class MainActivity : AppCompatActivity() {
         binding.clear.setOnClickListener { clear() }
     }
 
-    private fun closeKeyboard(context: Context, view: View){
-        val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(view.windowToken,InputMethodManager.HIDE_NOT_ALWAYS)
+    private fun closeKeyboard(context: Context, view: View) {
+        val inputMethodManager =
+            getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(
+            view.windowToken,
+            InputMethodManager.HIDE_NOT_ALWAYS
+        )
     }
 
     private fun displayDialog() {
