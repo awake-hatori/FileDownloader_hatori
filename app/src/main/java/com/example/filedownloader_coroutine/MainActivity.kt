@@ -2,6 +2,7 @@ package com.example.filedownloader_coroutine
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -10,7 +11,11 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.View
+import android.view.View.OnFocusChangeListener
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -21,7 +26,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -31,7 +35,8 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 
-class MainActivity : AppCompatActivity() {  
+
+class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val directoryPath =
         Environment.getExternalStorageDirectory().path + "/hatori_picture"
@@ -51,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         displayDialog()
         // URLから画像をダウンロード
         binding.startDownload.setOnClickListener {
+            closeKeyboard(context = this,binding.startDownload)
             val urlString = binding.URLInputField.text.toString()
             downloadImage(urlString)
         }
@@ -60,6 +66,11 @@ class MainActivity : AppCompatActivity() {
         binding.toDocument.setOnClickListener { toDocument() }
         // 画像とテキストをclear
         binding.clear.setOnClickListener { clear() }
+    }
+
+    private fun closeKeyboard(context: Context, view: View){
+        val inputMethodManager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(view.windowToken,InputMethodManager.HIDE_NOT_ALWAYS)
     }
 
     private fun displayDialog() {
@@ -100,7 +111,7 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SimpleDateFormat")
     @OptIn(DelicateCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun downloadImage(urlString: String) = runBlocking {
+    private fun downloadImage(urlString: String) {
         binding.progressbar.isInvisible = false
         GlobalScope.launch {
             try {
@@ -149,7 +160,7 @@ class MainActivity : AppCompatActivity() {
     private fun toGallery() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
-        startActivityForResult(intent, REQUEST_IMAGE_TAKE)
+        receivePicture.launch(intent)
     }
 
     @SuppressLint("IntentReset")
@@ -160,22 +171,18 @@ class MainActivity : AppCompatActivity() {
         Log.d("Log", "$uri")
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT, uri)
         intent.type = "image/*"
-        startActivityForResult(intent, REQUEST_IMAGE_TAKE)
+        receivePicture.launch(intent)
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            REQUEST_IMAGE_TAKE -> {
-                if (resultCode == Activity.RESULT_OK && requestCode.equals(REQUEST_IMAGE_TAKE)) {
-                    // 遷移先の画面から画像データを取得して表示
-                    binding.image.setImageURI(data?.data)
-                    Toast.makeText(applicationContext, "画像を取得しました", Toast.LENGTH_SHORT).show()
-                }
+    // ギャラリーから画像受け取り
+    private val receivePicture =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
+                // 遷移先の画面から画像データを取得して表示
+                binding.image.setImageURI(it.data?.data)
+                Toast.makeText(applicationContext, "画像を取得しました", Toast.LENGTH_SHORT).show()
             }
         }
-    }
 
     private fun clear() {
         binding.URLInputField.setText("")
